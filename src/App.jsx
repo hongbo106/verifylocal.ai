@@ -56,194 +56,351 @@ const BrandLogo = ({ className = "h-8" }) => (
 // --- AUTH PAGE ---
 const AuthPage = ({ portalMode, roleMode, setRoleMode, authMode, setAuthMode, formData, setFormData, handleAuth, sessionID }) => {
   const isAdminPortal = portalMode === 'admin';
-  const availableRoles = isAdminPortal ? ['admin'] : ['influencer', 'merchant'];
+  const availableRoles = isAdminPortal ? ['admin'] : ['merchant', 'influencer'];
 
+  // ── Admin portal: compact dark sign-in only ──────────────────────────────
+  if (isAdminPortal) {
+    return (
+      <div className="min-h-screen bg-[#080E1A] flex flex-col">
+        <div className="px-8 py-5 flex items-center justify-between border-b border-white/5">
+          <BrandLogo className="h-8" />
+          <span className="bg-cyan-400/10 border border-cyan-400/20 text-cyan-300 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full flex items-center gap-1.5">
+            <ShieldCheck size={11} /> Operator Portal
+          </span>
+        </div>
+        <div className="flex-1 flex items-center justify-center px-6 py-20">
+          <div className="w-full max-w-sm">
+            <h1 className="text-3xl font-black text-white tracking-tight mb-2">Admin sign-in</h1>
+            <p className="text-slate-400 text-sm mb-8 leading-relaxed">Reserved for internal operators. Use your admin credentials to access the dashboard.</p>
+            <div className="bg-cyan-400/5 border border-cyan-400/15 rounded-xl px-4 py-3 mb-6">
+              <p className="text-[10px] font-black uppercase tracking-widest text-cyan-400 mb-1">Security note</p>
+              <p className="text-xs text-slate-400">Keep this URL internal. Share only with authorized operators.</p>
+            </div>
+            <form onSubmit={handleAuth} className="space-y-3" autoComplete="off">
+              <input id={`e-${sessionID}`} name={`e-${sessionID}`} type="email" placeholder="Admin email" value={formData.email || ''} required className="w-full p-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-slate-500 outline-none focus:border-cyan-400/40 transition-colors text-sm" onChange={e => setFormData({...formData, email: e.target.value})} />
+              <input id={`p-${sessionID}`} name={`p-${sessionID}`} type="password" placeholder="Password" value={formData.password || ''} required className="w-full p-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-slate-500 outline-none focus:border-cyan-400/40 transition-colors text-sm" onChange={e => setFormData({...formData, password: e.target.value})} />
+              <button className="w-full py-3.5 bg-cyan-400 text-slate-950 rounded-xl font-black uppercase tracking-widest shadow-lg shadow-cyan-500/20 text-sm mt-1">Access operator dashboard</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Public SaaS landing page ─────────────────────────────────────────────
   return (
-  <div className={`${isAdminPortal ? 'bg-[radial-gradient(circle_at_top_left,_rgba(37,99,235,0.18),_transparent_22%),linear-gradient(180deg,_#020617_0%,_#0f172a_52%,_#111827_100%)]' : 'bg-[radial-gradient(circle_at_top_left,_rgba(37,99,235,0.12),_transparent_28%),linear-gradient(180deg,_#f8fafc_0%,_#eef4ff_42%,_#ffffff_100%)]'} min-h-screen animate-in fade-in duration-300`}>
-    <div className="max-w-7xl mx-auto px-6 lg:px-8 py-6 lg:py-10">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-10">
-        <div className={`${isAdminPortal ? 'bg-white/5 border border-white/10 rounded-2xl px-4 py-3 w-fit backdrop-blur-sm' : ''}`}>
-          <BrandLogo className="h-11" />
-        </div>
-        <div className="flex flex-wrap items-center gap-3 text-[10px] font-black uppercase tracking-[0.2em]">
-          <span className={`px-3 py-2 rounded-full border ${isAdminPortal ? 'bg-white/5 border-white/10 text-slate-300' : 'bg-white/80 border border-slate-200 text-slate-500'}`}>Proof-Based Campaigns</span>
-          <span className={`px-3 py-2 rounded-full ${isAdminPortal ? 'bg-cyan-400 text-slate-950 shadow-lg shadow-cyan-500/20' : 'bg-[#1E3A8A] text-white shadow-lg shadow-blue-100'}`}>{isAdminPortal ? 'Operator Portal' : 'Merchant Intelligence'}</span>
-        </div>
-      </header>
+    <div className="bg-white min-h-screen font-sans">
 
-      <section className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
-        <div className={`${isAdminPortal ? 'xl:col-span-7' : 'xl:col-span-6'} space-y-6`}>
-          <div className={`${isAdminPortal ? 'bg-white/5 border-white/10 text-white shadow-[0_24px_90px_-42px_rgba(14,165,233,0.18)] p-8 lg:p-10' : 'bg-white/70 border border-white shadow-[0_24px_90px_-42px_rgba(30,58,138,0.35)] p-7 lg:p-8'} backdrop-blur-sm rounded-[40px]`}>
-            <div className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.25em] mb-5 ${isAdminPortal ? 'text-cyan-300' : 'text-blue-700'}`}>
-              <Signal size={14} />
-              {isAdminPortal ? 'Operator audit workspace' : 'Local proof, verified impact'}
-            </div>
-            <h1 className={`${isAdminPortal ? 'text-5xl lg:text-6xl max-w-3xl' : 'text-4xl lg:text-5xl max-w-2xl'} font-black tracking-[-0.05em] leading-[0.92] ${isAdminPortal ? 'text-white' : 'text-slate-950'}`}>
-              {isAdminPortal ? 'Review merchant activity and traffic signals from one private portal.' : 'Run local campaigns that prove people actually showed up.'}
-            </h1>
-            <p className={`mt-5 ${isAdminPortal ? 'max-w-2xl text-lg' : 'max-w-xl text-base'} leading-relaxed ${isAdminPortal ? 'text-slate-300' : 'text-slate-600'}`}>
-              {isAdminPortal ? 'This route is reserved for internal operators. Sign in to inspect merchant rosters, campaign evidence, and traffic-series deltas without exposing admin access on the public homepage.' : 'VerifyLocal connects merchants and creators in one workflow. Launch on-site campaigns, collect storefront proof, and monitor traffic lift from a single command surface.'}
-            </p>
-
-            <div className={`mt-7 grid grid-cols-1 sm:grid-cols-3 ${isAdminPortal ? 'gap-4' : 'gap-3'}`}>
-              <div className={`rounded-[28px] border ${isAdminPortal ? 'px-5 py-5' : 'px-4 py-4'} shadow-sm ${isAdminPortal ? 'border-white/10 bg-white/5' : 'border-slate-200 bg-white'}`}>
-                <div className={`w-11 h-11 rounded-2xl flex items-center justify-center mb-4 ${isAdminPortal ? 'bg-cyan-400/15 text-cyan-300' : 'bg-blue-50 text-blue-700'}`}><PlusCircle size={20} /></div>
-                <p className={`text-sm font-black ${isAdminPortal ? 'text-white' : 'text-slate-900'}`}>{isAdminPortal ? 'Merchant network view' : 'Create campaigns'}</p>
-                <p className={`text-sm mt-2 ${isAdminPortal ? 'text-slate-300' : 'text-slate-500'}`}>{isAdminPortal ? 'Inspect registered merchants and their campaign footprint.' : 'Merchants publish a payout and target a real-world visit.'}</p>
-              </div>
-              <div className={`rounded-[28px] border ${isAdminPortal ? 'px-5 py-5' : 'px-4 py-4'} shadow-sm ${isAdminPortal ? 'border-white/10 bg-white/5' : 'border-slate-200 bg-white'}`}>
-                <div className={`w-11 h-11 rounded-2xl flex items-center justify-center mb-4 ${isAdminPortal ? 'bg-emerald-400/15 text-emerald-300' : 'bg-emerald-50 text-emerald-700'}`}><Camera size={20} /></div>
-                <p className={`text-sm font-black ${isAdminPortal ? 'text-white' : 'text-slate-900'}`}>{isAdminPortal ? 'Evidence review' : 'Collect proof'}</p>
-                <p className={`text-sm mt-2 ${isAdminPortal ? 'text-slate-300' : 'text-slate-500'}`}>{isAdminPortal ? 'Trace creator submissions and verify proof across campaigns.' : 'Influencers submit on-site evidence tied to the merchant campaign.'}</p>
-              </div>
-              <div className={`rounded-[28px] border ${isAdminPortal ? 'px-5 py-5' : 'px-4 py-4'} shadow-sm ${isAdminPortal ? 'border-white/10 bg-white/5' : 'border-slate-200 bg-white'}`}>
-                <div className={`w-11 h-11 rounded-2xl flex items-center justify-center mb-4 ${isAdminPortal ? 'bg-blue-400/15 text-blue-300' : 'bg-slate-900 text-white'}`}><BarChart3 size={20} /></div>
-                <p className={`text-sm font-black ${isAdminPortal ? 'text-white' : 'text-slate-900'}`}>{isAdminPortal ? 'Traffic audit' : 'Audit impact'}</p>
-                <p className={`text-sm mt-2 ${isAdminPortal ? 'text-slate-300' : 'text-slate-500'}`}>{isAdminPortal ? 'Compare hourly lift and investigate anomalies merchant by merchant.' : 'Operators inspect network activity and traffic signals by merchant.'}</p>
-              </div>
-            </div>
+      {/* NAV */}
+      <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-slate-100">
+        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+          <BrandLogo className="h-8" />
+          <div className="flex items-center gap-3">
+            <a href="#auth-section" onClick={() => setAuthMode('signin')} className="text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors">Sign in</a>
+            <a href="#auth-section" onClick={() => setAuthMode('signup')} className="bg-slate-950 text-white text-sm font-bold px-4 py-2 rounded-lg hover:bg-slate-800 transition-colors">Get started</a>
           </div>
+        </div>
+      </nav>
 
-          <div className={`grid grid-cols-1 lg:grid-cols-5 ${isAdminPortal ? 'gap-5' : 'gap-4'}`}>
-            <div className={`lg:col-span-3 bg-[#0f172a] text-white rounded-[36px] ${isAdminPortal ? 'p-8' : 'p-6'} shadow-[0_24px_90px_-42px_rgba(15,23,42,0.55)]`}>
-              <p className="text-[10px] font-black uppercase tracking-[0.25em] text-blue-200">How it works</p>
-              <div className={`mt-5 ${isAdminPortal ? 'space-y-5' : 'space-y-4'}`}>
-                {[
-                  { icon: Users, title: '1. Merchants define the visit', text: 'Set campaign name, payout, and optionally attach a Google Place ID for real popular-times lookup.' },
-                  { icon: CheckCircle, title: '2. Creators submit verifiable proof', text: 'Evidence is linked to a merchant and campaign, keeping the audit trail clean.' },
-                  { icon: Activity, title: '3. Operators compare outcome signals', text: 'Admin sees roster health, evidence flow, and traffic-series deltas by merchant.' },
-                ].map((item) => (
-                  <div key={item.title} className={`${isAdminPortal ? 'flex gap-4 items-start' : 'flex gap-3 items-start'}`}>
-                    <div className={`${isAdminPortal ? 'w-11 h-11 rounded-2xl' : 'w-10 h-10 rounded-xl'} bg-white/10 border border-white/10 flex items-center justify-center shrink-0`}><item.icon size={18} /></div>
-                    <div>
-                      <p className="font-black tracking-tight text-sm">{item.title}</p>
-                      <p className="text-sm text-slate-300 mt-1 leading-relaxed">{item.text}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className={`lg:col-span-2 rounded-[36px] p-6 shadow-sm space-y-5 ${isAdminPortal ? 'bg-white/5 border border-white/10 backdrop-blur-sm' : 'bg-white border border-slate-200'}`}>
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Launch snapshot</p>
-                <p className={`text-3xl font-black tracking-tighter mt-2 ${isAdminPortal ? 'text-white' : 'text-slate-950'}`}>{isAdminPortal ? 'Private operator access for the VerifyLocal network.' : 'One homepage. Two public roles. One audit trail.'}</p>
-              </div>
-              <div className="space-y-3">
-                {[
-                  { icon: ShieldCheck, label: isAdminPortal ? 'Private operator route' : 'Private operator oversight' },
-                  { icon: Clock, label: 'Fast merchant onboarding' },
-                  { icon: History, label: 'Persistent submission history' },
-                ].map((item) => (
-                  <div key={item.label} className={`flex items-center justify-between rounded-2xl px-4 py-3 ${isAdminPortal ? 'bg-white/5 border border-white/10' : 'bg-slate-50 border border-slate-100'}`}>
-                    <div className={`flex items-center gap-3 ${isAdminPortal ? 'text-slate-200' : 'text-slate-700'}`}>
-                      <item.icon size={16} />
-                      <span className="text-sm font-bold">{item.label}</span>
-                    </div>
-                    <ArrowRight size={14} className={isAdminPortal ? 'text-slate-500' : 'text-slate-400'} />
-                  </div>
-                ))}
-              </div>
-              <div className={`rounded-2xl px-4 py-4 ${isAdminPortal ? 'bg-cyan-400/10 border border-cyan-400/20' : 'bg-blue-50 border border-blue-100'}`}>
-                <p className={`text-sm font-black ${isAdminPortal ? 'text-cyan-200' : 'text-blue-900'}`}>{isAdminPortal ? 'Restricted operator route' : 'Traffic-ready setup'}</p>
-                <p className={`text-sm mt-2 ${isAdminPortal ? 'text-slate-300' : 'text-blue-800'}`}>{isAdminPortal ? 'This page is the private sign-in surface for internal operators and admins.' : 'Merchants can attach a Google Place ID during signup to prepare real popular-times integration later.'}</p>
-              </div>
-            </div>
+      {/* HERO */}
+      <section className="max-w-6xl mx-auto px-6 pt-20 pb-24 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+        <div>
+          <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 text-xs font-bold uppercase tracking-widest px-3 py-1.5 rounded-full mb-7 border border-blue-100">
+            <ShieldCheck size={12} /> Verification infrastructure for local commerce
+          </div>
+          <h1 className="text-5xl lg:text-[3.4rem] font-black tracking-[-0.04em] text-slate-950 leading-[1.06]">
+            Verify that local creator marketing actually happened.
+          </h1>
+          <p className="mt-6 text-lg text-slate-500 leading-relaxed max-w-lg">
+            VerifyLocal proves a social post was created at a real location, filters for local reach, and only releases payment when verification passes.
+          </p>
+          <div className="mt-10 flex flex-wrap items-center gap-4">
+            <a href="#auth-section" onClick={() => setAuthMode('signup')} className="bg-slate-950 text-white font-bold px-6 py-3.5 rounded-xl hover:bg-slate-800 transition-all shadow-lg shadow-slate-200/60 flex items-center gap-2 text-sm">
+              Join the pilot <ArrowRight size={15} />
+            </a>
+            <a href="#how" className="text-slate-600 font-semibold px-4 py-3.5 flex items-center gap-2 hover:text-slate-900 transition-colors text-sm">
+              How it works
+            </a>
+          </div>
+          <div className="mt-10 flex flex-col sm:flex-row flex-wrap gap-3">
+            {['No payment without verification', 'Mandatory disclosure built-in', 'Confidence-labeled metrics'].map(t => (
+              <span key={t} className="flex items-center gap-1.5 text-sm text-slate-500 font-medium">
+                <CheckCircle size={13} className="text-emerald-500 shrink-0" /> {t}
+              </span>
+            ))}
           </div>
         </div>
 
-        <div className={`${isAdminPortal ? 'xl:col-span-5 xl:sticky xl:top-8' : 'xl:col-span-6 space-y-5'}`}>
-          <div className={`rounded-[40px] shadow-[0_28px_90px_-48px_rgba(15,23,42,0.45)] overflow-hidden ${isAdminPortal ? 'bg-slate-950 border border-cyan-400/15' : 'bg-white border border-slate-200'}`}>
-            <div className={`px-8 pt-8 pb-6 border-b ${isAdminPortal ? 'border-white/10 bg-[linear-gradient(135deg,_rgba(34,211,238,0.16)_0%,_rgba(15,23,42,0.9)_100%)]' : 'border-slate-100 bg-[linear-gradient(135deg,_#f8fbff_0%,_#eef4ff_100%)]'}`}>
-              <div className="flex items-center justify-between gap-4 mb-5">
-                <p className={`text-[10px] font-black uppercase tracking-[0.25em] ${isAdminPortal ? 'text-cyan-200' : 'text-slate-400'}`}>{isAdminPortal ? 'Admin sign-in' : 'Enter the network'}</p>
-                <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest ${isAdminPortal ? 'bg-white/5 border border-white/10 text-slate-300' : 'bg-white border border-slate-200 text-slate-500'}`}>
-                  <ExternalLink size={12} />
-                  {isAdminPortal ? 'Private route' : 'Live prototype'}
-                </span>
-              </div>
-              <BrandLogo className="h-12" />
-              <p className={`mt-4 text-sm leading-relaxed ${isAdminPortal ? 'text-slate-300' : 'text-slate-700'}`}>{isAdminPortal ? 'Use your internal admin credentials to access the operator dashboard.' : 'Sign in to access your existing dashboard data, or create an account to start tracking campaigns and proofs.'}</p>
-              {!isAdminPortal && <div className="mt-5 grid grid-cols-2 gap-3">
-                <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Campaigns</p>
-                  <p className="mt-2 text-2xl font-black tracking-tighter text-slate-950">Proof-first</p>
-                </div>
-                <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Traffic</p>
-                  <p className="mt-2 text-2xl font-black tracking-tighter text-slate-950">Visit-aware</p>
-                </div>
-              </div>}
+        {/* Dashboard mockup */}
+        <div className="relative hidden lg:block">
+          <div className="bg-slate-950 rounded-2xl p-6 shadow-2xl shadow-slate-300/40">
+            <div className="flex items-center justify-between mb-5">
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Campaign Analytics</p>
+              <span className="bg-emerald-500/20 text-emerald-400 text-xs font-bold px-2.5 py-1 rounded-full flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse inline-block" /> Live
+              </span>
             </div>
-
-            <div className="p-8">
-              {!isAdminPortal && <div className="mb-6 rounded-2xl border border-slate-200 bg-slate-50 p-1.5">
-                <div className="grid grid-cols-2 gap-1.5">
-                  <button type="button" onClick={() => setAuthMode('signin')} className={`rounded-xl px-3 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all ${authMode === 'signin' ? 'bg-white text-blue-700 shadow-sm border border-blue-200' : 'text-slate-500'}`}>Sign in</button>
-                  <button type="button" onClick={() => setAuthMode('signup')} className={`rounded-xl px-3 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all ${authMode === 'signup' ? 'bg-white text-blue-700 shadow-sm border border-blue-200' : 'text-slate-500'}`}>Create account</button>
-                </div>
-              </div>}
-
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-3">Choose your role</p>
-              <div className="flex bg-slate-100 p-1 rounded-2xl mb-6">
-                {availableRoles.map(r => (
-                  <button key={r} onClick={() => setRoleMode(r)} className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${roleMode === r ? 'bg-white shadow-md text-blue-600' : 'text-slate-400'}`}>{r}</button>
-                ))}
-              </div>
-
-              <div className={`rounded-[28px] px-5 py-4 mb-6 ${isAdminPortal ? 'border border-white/10 bg-white/5' : 'border border-slate-100 bg-slate-50'}`}>
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Current mode</p>
-                <p className={`mt-2 text-lg font-black tracking-tight ${isAdminPortal ? 'text-white' : 'text-slate-900'}`}>{roleMode === 'merchant' ? 'Merchant setup' : roleMode === 'influencer' ? 'Influencer access' : 'Admin access'}</p>
-                <p className={`mt-1 text-sm ${isAdminPortal ? 'text-slate-300' : 'text-slate-500'}`}>{roleMode === 'merchant' ? 'Create campaigns and connect a place ID for traffic monitoring.' : roleMode === 'influencer' ? 'Browse bounties and upload on-site evidence.' : 'Review network activity, submissions, and traffic deltas.'}</p>
-              </div>
-
-              {isAdminPortal && <div className="mb-6 rounded-2xl border border-cyan-400/15 bg-cyan-400/5 px-4 py-4">
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-200">Security note</p>
-                <p className="mt-2 text-sm text-slate-300 leading-relaxed">Keep this route internal. Share the URL only with operators who should review merchant traffic and network evidence.</p>
-              </div>}
-
-              <form onSubmit={handleAuth} className="space-y-4" autoComplete="off">
-                {authMode === 'signup' && (
-                  <>
-                    <input id={`n-${sessionID}`} name={`n-${sessionID}`} type="text" placeholder="Full Name" value={formData.name || ''} required className="w-full p-4 bg-slate-50 border rounded-2xl outline-none" onChange={e => setFormData({...formData, name: e.target.value})} />
-                    {roleMode === 'merchant' && <input id={`b-${sessionID}`} name={`b-${sessionID}`} type="text" placeholder="Stonebridge Restaurant..." value={formData.businessName || ''} required className="w-full p-4 bg-slate-50 border rounded-2xl outline-none" onChange={e => setFormData({...formData, businessName: e.target.value})} />}
-                    {roleMode === 'merchant' && <input id={`pid-${sessionID}`} name={`pid-${sessionID}`} type="text" placeholder="Google Place ID (optional — e.g. ChIJN1t_...)" value={formData.placeId || ''} className="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-mono text-sm" onChange={e => setFormData({...formData, placeId: e.target.value})} />}
-                    {roleMode === 'influencer' && <input id={`s-${sessionID}`} name={`s-${sessionID}`} type="text" placeholder="@Handle" value={formData.socialHandle || ''} required className="w-full p-4 bg-slate-50 border rounded-2xl outline-none" onChange={e => setFormData({...formData, socialHandle: e.target.value})} />}
-                  </>
-                )}
-                <input id={`e-${sessionID}`} name={`e-${sessionID}`} type="email" placeholder="Email" value={formData.email || ''} required className={`w-full p-4 border rounded-2xl outline-none ${isAdminPortal ? 'bg-slate-900 border-white/10 text-white placeholder:text-slate-500' : 'bg-slate-50'}`} onChange={e => setFormData({...formData, email: e.target.value})} />
-                <input id={`p-${sessionID}`} name={`p-${sessionID}`} type="password" placeholder="Password" value={formData.password || ''} required className={`w-full p-4 border rounded-2xl outline-none ${isAdminPortal ? 'bg-slate-900 border-white/10 text-white placeholder:text-slate-500' : 'bg-slate-50'}`} onChange={e => setFormData({...formData, password: e.target.value})} />
-                <button className={`w-full py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl ${isAdminPortal ? 'bg-cyan-400 text-slate-950 shadow-cyan-500/20' : 'bg-[#1E3A8A] text-white shadow-blue-100'}`}>{authMode === 'signin' ? 'Login to Dashboard' : 'Create Account & Continue'}</button>
-                <p className={`text-[11px] font-bold mt-2 ${isAdminPortal ? 'text-slate-400' : 'text-slate-500'}`}>{authMode === 'signin' ? 'Use your existing credentials to access your dashboard data.' : 'Create your account first, then you can access your dashboard data.'}</p>
-              </form>
-            </div>
-          </div>
-
-          {!isAdminPortal && <div className="rounded-[34px] border border-slate-200 bg-white/85 backdrop-blur-sm p-6 shadow-[0_20px_70px_-44px_rgba(15,23,42,0.3)]">
-            <div className="flex items-center justify-between gap-4 mb-4">
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">Why teams use it</p>
-                <p className="mt-2 text-xl font-black tracking-tight text-slate-950">Built for operators, usable by merchants.</p>
-              </div>
-              <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-700 flex items-center justify-center shrink-0"><Users size={20} /></div>
-            </div>
-            <div className="space-y-3">
+            <p className="text-white font-bold text-base mb-4">Stonebridge Restaurant</p>
+            <div className="grid grid-cols-2 gap-3 mb-4">
               {[
-                'Public onboarding stays simple for merchants and creators.',
-                'Proof submissions remain tied to a merchant and campaign.',
-                'Traffic intelligence is ready for real place-based integration.',
-              ].map((line) => (
-                <div key={line} className="flex items-start gap-3 rounded-2xl bg-slate-50 border border-slate-100 px-4 py-3">
-                  <div className="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5"><CheckCircle size={14} /></div>
-                  <p className="text-sm text-slate-600 leading-relaxed">{line}</p>
+                { label: 'Verified Local Views', value: '2,847', sub: '↑ 34% vs last week', color: 'text-emerald-400' },
+                { label: 'Filtered Out', value: '1,203', sub: 'Non-local audience', color: 'text-slate-500' },
+                { label: 'Confidence Score', value: '94%', sub: 'High confidence', color: 'text-blue-400' },
+                { label: 'Paid Out', value: '$340', sub: '3 tokens released', color: 'text-emerald-400' },
+              ].map(m => (
+                <div key={m.label} className="bg-white/5 rounded-xl p-3">
+                  <p className="text-slate-400 text-xs mb-1">{m.label}</p>
+                  <p className="text-white text-xl font-black tracking-tight">{m.value}</p>
+                  <p className={`text-xs mt-0.5 ${m.color}`}>{m.sub}</p>
                 </div>
               ))}
             </div>
-          </div>}
+            <div className="bg-blue-600/20 border border-blue-500/30 rounded-xl p-3 flex items-center gap-3">
+              <div className="w-7 h-7 bg-blue-500/30 rounded-lg flex items-center justify-center shrink-0">
+                <ShieldCheck size={14} className="text-blue-300" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-blue-200 text-xs font-bold">Local Proof Token #LPT-0047</p>
+                <p className="text-slate-400 text-xs">4-stage engine passed · Payment released</p>
+              </div>
+              <CheckCircle size={15} className="text-emerald-400 shrink-0" />
+            </div>
+          </div>
+          <div className="absolute -bottom-4 -left-4 bg-white rounded-xl shadow-xl border border-slate-100 px-4 py-3 flex items-center gap-3">
+            <div className="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center shrink-0">
+              <MapPin size={14} className="text-emerald-600" />
+            </div>
+            <div>
+              <p className="text-xs font-black text-slate-900">Location verified</p>
+              <p className="text-[10px] text-slate-400">Milford, CT · on-site proof collected</p>
+            </div>
+          </div>
         </div>
       </section>
+
+      {/* PROBLEM */}
+      <section className="bg-slate-50 border-y border-slate-100 py-20">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-12">
+            <p className="text-xs font-bold uppercase tracking-widest text-blue-600 mb-3">The problem</p>
+            <h2 className="text-3xl lg:text-4xl font-black tracking-tight text-slate-950">Merchants pay for reach. They get no proof.</h2>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 max-w-4xl mx-auto">
+            <div className="bg-white rounded-2xl border border-slate-200 p-7">
+              <p className="text-[10px] font-black uppercase tracking-widest text-red-500 mb-4">What merchants pay for</p>
+              <ul className="space-y-3">
+                {['Creator posts to "local" audience', 'Impressions and reach metrics', 'Brand awareness campaigns', 'Influencer visit claims'].map(t => (
+                  <li key={t} className="flex items-center gap-3 text-sm text-slate-600">
+                    <span className="w-5 h-5 rounded-full bg-red-50 border border-red-100 flex items-center justify-center shrink-0"><span className="w-1.5 h-1.5 bg-red-400 rounded-full" /></span>{t}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="bg-white rounded-2xl border border-slate-200 p-7">
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">What they actually get today</p>
+              <ul className="space-y-3">
+                {['No proof the creator was on-site', 'Global audience, not local', 'No verified foot-traffic signal', 'Payment upfront, no accountability'].map(t => (
+                  <li key={t} className="flex items-center gap-3 text-sm text-slate-500">
+                    <span className="w-5 h-5 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0"><span className="w-1.5 h-1.5 bg-slate-400 rounded-full" /></span>{t}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* HOW IT WORKS */}
+      <section id="how" className="py-20">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-12">
+            <p className="text-xs font-bold uppercase tracking-widest text-blue-600 mb-3">How it works</p>
+            <h2 className="text-3xl lg:text-4xl font-black tracking-tight text-slate-950">4-stage verification engine</h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {[
+              { num: '01', icon: MapPin, title: 'Capture on-site signals', text: 'Creator submits geo-tagged storefront proof tied to the merchant location.' },
+              { num: '02', icon: Activity, title: 'Filter bad submissions', text: 'Out-of-area audience and non-local content is filtered before any payment is considered.' },
+              { num: '03', icon: ShieldCheck, title: 'Verify location & authenticity', text: 'Location data, post timing, and audience signals are cross-checked against the campaign.' },
+              { num: '04', icon: CheckCircle, title: 'Release with Proof Token', text: 'Payment is released via escrow only after a Local Proof Token is minted and verification passes.' },
+            ].map(step => (
+              <div key={step.num} className="relative bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
+                <p className="text-5xl font-black text-slate-100 tracking-tighter absolute top-3 right-4 select-none">{step.num}</p>
+                <div className="w-9 h-9 bg-slate-950 rounded-xl flex items-center justify-center mb-4">
+                  <step.icon size={16} className="text-white" />
+                </div>
+                <h3 className="font-black text-slate-900 tracking-tight text-sm mb-2">{step.title}</h3>
+                <p className="text-sm text-slate-500 leading-relaxed">{step.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* DASHBOARD SECTION */}
+      <section className="bg-slate-950 py-20">
+        <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-widest text-blue-400 mb-3">Merchant dashboard</p>
+            <h2 className="text-3xl lg:text-4xl font-black tracking-tight text-white">Your ROI, measured and verified.</h2>
+            <p className="mt-5 text-slate-400 text-lg leading-relaxed">Every campaign shows exactly what was verified, what was filtered out, and what you paid for. No guesswork.</p>
+            <ul className="mt-8 space-y-3.5">
+              {[
+                { icon: BarChart3, text: 'Budget posted and verified local views side-by-side' },
+                { icon: Activity, text: 'Non-local audience automatically filtered out' },
+                { icon: ShieldCheck, text: 'Confidence-labeled foot traffic lift estimate' },
+                { icon: CheckCircle, text: 'Payment tied to Local Proof Token issuance' },
+              ].map(item => (
+                <li key={item.text} className="flex items-center gap-3 text-slate-300 text-sm">
+                  <span className="w-7 h-7 bg-white/5 border border-white/10 rounded-lg flex items-center justify-center shrink-0">
+                    <item.icon size={13} className="text-blue-400" />
+                  </span>
+                  {item.text}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="text-white font-bold text-sm">Stonebridge Restaurant</p>
+              <span className="text-xs bg-emerald-500/20 text-emerald-400 font-bold px-2 py-1 rounded-full">Active</span>
+            </div>
+            {[
+              { label: 'Budget posted', value: '$500', pct: 100, color: 'bg-blue-500' },
+              { label: 'Verified local views', value: '2,847', pct: 72, color: 'bg-emerald-500' },
+              { label: 'Non-local filtered', value: '1,203', pct: 30, color: 'bg-slate-600' },
+              { label: 'Paid out', value: '$340', pct: 68, color: 'bg-blue-400' },
+            ].map(row => (
+              <div key={row.label} className="space-y-1.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-400">{row.label}</span>
+                  <span className="text-white font-bold">{row.value}</span>
+                </div>
+                <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                  <div className={`h-full ${row.color} rounded-full`} style={{ width: `${row.pct}%` }} />
+                </div>
+              </div>
+            ))}
+            <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl px-4 py-3 flex items-center gap-3 mt-2">
+              <Activity size={13} className="text-blue-400 shrink-0" />
+              <div>
+                <p className="text-blue-200 text-xs font-bold">Estimated foot traffic lift</p>
+                <p className="text-slate-400 text-xs">+18% this week · Confidence 91% (estimated signal)</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* TRUST SECTION */}
+      <section className="py-20 bg-slate-50 border-y border-slate-100">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-12">
+            <p className="text-xs font-bold uppercase tracking-widest text-blue-600 mb-3">Built to be trusted</p>
+            <h2 className="text-3xl lg:text-4xl font-black tracking-tight text-slate-950">Verification you can stand behind.</h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {[
+              { icon: ShieldCheck, title: 'Third-party escrow', text: 'Funds are held and only released when the verification engine approves the submission.' },
+              { icon: CheckCircle, title: 'Mandatory disclosure', text: 'All sponsored content is marked for compliance. No undisclosed paid posts.' },
+              { icon: Info, title: 'Confidence-labeled metrics', text: 'Every metric carries a confidence score. No opaque vanity numbers.' },
+              { icon: Award, title: 'Local Proof Token', text: 'Each verified campaign event is recorded as a tamper-evident proof token.' },
+            ].map(item => (
+              <div key={item.title} className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                <div className="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center mb-4">
+                  <item.icon size={16} className="text-blue-700" />
+                </div>
+                <h3 className="font-black text-slate-900 text-sm mb-2">{item.title}</h3>
+                <p className="text-sm text-slate-500 leading-relaxed">{item.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FOR MERCHANTS / FOR CREATORS */}
+      <section className="py-20">
+        <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-slate-950 rounded-2xl p-8 text-white">
+            <p className="text-[10px] font-black uppercase tracking-widest text-blue-400 mb-4">For merchants</p>
+            <h3 className="text-2xl font-black tracking-tight mb-3">Only pay for verified local reach.</h3>
+            <p className="text-slate-400 leading-relaxed text-sm mb-6">Post a campaign budget and location. We verify every submission, filter irrelevant reach, and release payment only when proof passes.</p>
+            <ul className="space-y-2 mb-8">
+              {['Set campaign budget and location', 'Receive on-site creator proofs', 'Review verified local views', 'Pay only for verified results'].map(t => (
+                <li key={t} className="flex items-center gap-2 text-sm text-slate-300">
+                  <CheckCircle size={13} className="text-emerald-400 shrink-0" /> {t}
+                </li>
+              ))}
+            </ul>
+            <a href="#auth-section" onClick={() => { setRoleMode('merchant'); setAuthMode('signup'); }} className="inline-flex items-center gap-2 bg-white text-slate-950 font-bold px-5 py-3 rounded-xl hover:bg-slate-100 transition-colors text-sm">Start as merchant <ArrowRight size={14} /></a>
+          </div>
+          <div className="bg-white border border-slate-200 rounded-2xl p-8">
+            <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600 mb-4">For creators</p>
+            <h3 className="text-2xl font-black tracking-tight text-slate-950 mb-3">Get guaranteed payment when verification passes.</h3>
+            <p className="text-slate-500 leading-relaxed text-sm mb-6">Browse campaigns near you, visit the location, and submit on-site proof. Payment is held in escrow and released automatically when your submission clears.</p>
+            <ul className="space-y-2 mb-8">
+              {['Browse local merchant campaigns', 'Visit and capture on-site proof', 'Submit through the verification engine', 'Get paid via escrow when verified'].map(t => (
+                <li key={t} className="flex items-center gap-2 text-sm text-slate-600">
+                  <CheckCircle size={13} className="text-emerald-500 shrink-0" /> {t}
+                </li>
+              ))}
+            </ul>
+            <a href="#auth-section" onClick={() => { setRoleMode('influencer'); setAuthMode('signup'); }} className="inline-flex items-center gap-2 bg-slate-950 text-white font-bold px-5 py-3 rounded-xl hover:bg-slate-800 transition-colors text-sm">Start as creator <ArrowRight size={14} /></a>
+          </div>
+        </div>
+      </section>
+
+      {/* AUTH SECTION */}
+      <section id="auth-section" className="bg-slate-50 border-t border-slate-100 py-20">
+        <div className="max-w-md mx-auto px-6">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-black tracking-tight text-slate-950">Join the pilot</h2>
+            <p className="mt-2 text-slate-500 text-sm">Sign in to your existing account or create a new one.</p>
+          </div>
+          <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+            <div className="bg-slate-50 border-b border-slate-100 p-3">
+              <div className="bg-white border border-slate-200 rounded-xl p-1 flex gap-1">
+                <button type="button" onClick={() => setAuthMode('signin')} className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${authMode === 'signin' ? 'bg-slate-950 text-white shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>Sign in</button>
+                <button type="button" onClick={() => setAuthMode('signup')} className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${authMode === 'signup' ? 'bg-slate-950 text-white shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>Create account</button>
+              </div>
+            </div>
+            <div className="p-6">
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">I am a</p>
+              <div className="flex bg-slate-100 p-1 rounded-xl mb-5">
+                {availableRoles.map(r => (
+                  <button key={r} type="button" onClick={() => setRoleMode(r)} className={`flex-1 py-2.5 text-xs font-black uppercase tracking-widest rounded-lg transition-all ${roleMode === r ? 'bg-white shadow text-slate-950' : 'text-slate-400'}`}>{r === 'influencer' ? 'Creator' : r}</button>
+                ))}
+              </div>
+              <form onSubmit={handleAuth} className="space-y-3" autoComplete="off">
+                {authMode === 'signup' && (
+                  <>
+                    <input id={`n-${sessionID}`} name={`n-${sessionID}`} type="text" placeholder="Full name" value={formData.name || ''} required className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-slate-400 transition-colors text-sm" onChange={e => setFormData({...formData, name: e.target.value})} />
+                    {roleMode === 'merchant' && <input id={`b-${sessionID}`} name={`b-${sessionID}`} type="text" placeholder="Business name" value={formData.businessName || ''} required className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-slate-400 transition-colors text-sm" onChange={e => setFormData({...formData, businessName: e.target.value})} />}
+                    {roleMode === 'merchant' && <input id={`pid-${sessionID}`} name={`pid-${sessionID}`} type="text" placeholder="Google Place ID (optional)" value={formData.placeId || ''} className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-slate-400 transition-colors text-sm font-mono" onChange={e => setFormData({...formData, placeId: e.target.value})} />}
+                    {roleMode === 'influencer' && <input id={`s-${sessionID}`} name={`s-${sessionID}`} type="text" placeholder="@handle" value={formData.socialHandle || ''} required className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-slate-400 transition-colors text-sm" onChange={e => setFormData({...formData, socialHandle: e.target.value})} />}
+                  </>
+                )}
+                <input id={`e-${sessionID}`} name={`e-${sessionID}`} type="email" placeholder="Email address" value={formData.email || ''} required className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-slate-400 transition-colors text-sm" onChange={e => setFormData({...formData, email: e.target.value})} />
+                <input id={`p-${sessionID}`} name={`p-${sessionID}`} type="password" placeholder="Password" value={formData.password || ''} required className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-slate-400 transition-colors text-sm" onChange={e => setFormData({...formData, password: e.target.value})} />
+                <button className="w-full py-3.5 bg-slate-950 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-colors shadow-md mt-1">
+                  {authMode === 'signin' ? 'Sign in to dashboard' : 'Create account'}
+                </button>
+              </form>
+            </div>
+          </div>
+          <p className="text-center text-xs text-slate-400 mt-5">No payment information required for pilot access.</p>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="border-t border-slate-100 py-8">
+        <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <BrandLogo className="h-7" />
+          <p className="text-sm text-slate-400">© 2026 VerifyLocal. Verification infrastructure for local commerce.</p>
+        </div>
+      </footer>
+
     </div>
-  </div>
   );
 };
 
