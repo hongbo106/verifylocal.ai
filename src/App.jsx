@@ -57,6 +57,22 @@ const BrandLogo = ({ className = "h-8" }) => (
 const AuthPage = ({ portalMode, roleMode, setRoleMode, authMode, setAuthMode, formData, setFormData, handleAuth, sessionID }) => {
   const isAdminPortal = portalMode === 'admin';
   const availableRoles = isAdminPortal ? ['admin'] : ['influencer', 'merchant'];
+  const roleConfig = {
+    merchant: {
+      title: 'Merchant',
+      subtitle: 'Create campaigns and track verified lift.',
+    },
+    influencer: {
+      title: 'Creator',
+      subtitle: 'Claim bounties and submit storefront proof.',
+    },
+    admin: {
+      title: 'Admin',
+      subtitle: 'Audit network activity and traffic signals.',
+    },
+  };
+  const currentRoleCopy = roleConfig[roleMode] || roleConfig.influencer;
+  const submitLabel = authMode === 'signin' ? `Continue as ${currentRoleCopy.title}` : `Create ${currentRoleCopy.title} account`;
 
   return (
   <div className={`${isAdminPortal ? 'bg-[radial-gradient(circle_at_top_left,_rgba(37,99,235,0.18),_transparent_22%),linear-gradient(180deg,_#020617_0%,_#0f172a_52%,_#111827_100%)]' : 'bg-[radial-gradient(circle_at_top_left,_rgba(37,99,235,0.12),_transparent_28%),linear-gradient(180deg,_#f8fafc_0%,_#eef4ff_42%,_#ffffff_100%)]'} min-h-screen animate-in fade-in duration-300`}>
@@ -177,14 +193,28 @@ const AuthPage = ({ portalMode, roleMode, setRoleMode, authMode, setAuthMode, fo
             </div>
 
             <div className="p-8">
-              <div className="flex bg-slate-100 p-1 rounded-2xl mb-6">
-                {availableRoles.map(r => (
-                  <button key={r} onClick={() => setRoleMode(r)} className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${roleMode === r ? 'bg-white shadow-md text-blue-600' : 'text-slate-400'}`}>{r}</button>
-                ))}
+              <div className="mb-6">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-3">Step 1 · Choose your role</p>
+                <div className={`grid gap-3 ${isAdminPortal ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2'}`}>
+                  {availableRoles.map((r) => {
+                    const isActiveRole = roleMode === r;
+                    return (
+                      <button
+                        key={r}
+                        type="button"
+                        onClick={() => setRoleMode(r)}
+                        className={`text-left rounded-2xl border px-4 py-4 transition-all ${isActiveRole ? 'bg-blue-50 border-blue-300 shadow-sm' : 'bg-white border-slate-200 hover:border-blue-200'}`}
+                      >
+                        <p className={`text-xs font-black uppercase tracking-widest ${isActiveRole ? 'text-blue-700' : 'text-slate-600'}`}>{roleConfig[r].title}</p>
+                        <p className={`text-xs mt-1 leading-relaxed ${isActiveRole ? 'text-blue-900' : 'text-slate-500'}`}>{roleConfig[r].subtitle}</p>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               <div className={`rounded-[28px] px-5 py-4 mb-6 ${isAdminPortal ? 'border border-white/10 bg-white/5' : 'border border-slate-100 bg-slate-50'}`}>
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Current mode</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Step 2 · Account details</p>
                 <p className={`mt-2 text-lg font-black tracking-tight ${isAdminPortal ? 'text-white' : 'text-slate-900'}`}>{roleMode === 'merchant' ? 'Merchant setup' : roleMode === 'influencer' ? 'Influencer access' : 'Admin access'}</p>
                 <p className={`mt-1 text-sm ${isAdminPortal ? 'text-slate-300' : 'text-slate-500'}`}>{roleMode === 'merchant' ? 'Create campaigns and connect a place ID for traffic monitoring.' : roleMode === 'influencer' ? 'Browse bounties and upload on-site evidence.' : 'Review network activity, submissions, and traffic deltas.'}</p>
               </div>
@@ -205,7 +235,8 @@ const AuthPage = ({ portalMode, roleMode, setRoleMode, authMode, setAuthMode, fo
                 )}
                 <input id={`e-${sessionID}`} name={`e-${sessionID}`} type="email" placeholder="Email" value={formData.email || ''} required className={`w-full p-4 border rounded-2xl outline-none ${isAdminPortal ? 'bg-slate-900 border-white/10 text-white placeholder:text-slate-500' : 'bg-slate-50'}`} onChange={e => setFormData({...formData, email: e.target.value})} />
                 <input id={`p-${sessionID}`} name={`p-${sessionID}`} type="password" placeholder="Password" value={formData.password || ''} required className={`w-full p-4 border rounded-2xl outline-none ${isAdminPortal ? 'bg-slate-900 border-white/10 text-white placeholder:text-slate-500' : 'bg-slate-50'}`} onChange={e => setFormData({...formData, password: e.target.value})} />
-                <button className={`w-full py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl ${isAdminPortal ? 'bg-cyan-400 text-slate-950 shadow-cyan-500/20' : 'bg-[#1E3A8A] text-white shadow-blue-100'}`}>Access Node</button>
+                <button className={`w-full py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl ${isAdminPortal ? 'bg-cyan-400 text-slate-950 shadow-cyan-500/20' : 'bg-[#1E3A8A] text-white shadow-blue-100'}`}>{submitLabel}</button>
+                <p className={`text-[11px] font-bold mt-2 ${isAdminPortal ? 'text-slate-400' : 'text-slate-500'}`}>Step 3 · You will land in your {currentRoleCopy.title.toLowerCase()} dashboard after authentication.</p>
               </form>
 
               {!isAdminPortal && <button onClick={() => { setAuthMode(authMode === 'signin' ? 'signup' : 'signin'); }} className="w-full mt-6 text-[10px] text-blue-600 underline font-black uppercase tracking-widest">{authMode === 'signin' ? 'Create Account' : 'Return to Login'}</button>}
