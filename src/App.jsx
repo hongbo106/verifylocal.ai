@@ -31,6 +31,21 @@ const buildTrafficSeries = (seedValue = '') => {
   });
 };
 
+const classifyOpportunity = (series = []) => {
+  if (!series.length) return { level: 'Low', tone: 'text-slate-600 bg-slate-100', window: 'N/A' };
+
+  const avgCampaign = Math.round(series.reduce((acc, point) => acc + point.campaign, 0) / series.length);
+  const bestHour = series.reduce((best, point) => (point.campaign > best.campaign ? point : best), series[0]);
+
+  if (avgCampaign >= 65) {
+    return { level: 'High', tone: 'text-emerald-700 bg-emerald-100', window: bestHour.hour };
+  }
+  if (avgCampaign >= 45) {
+    return { level: 'Medium', tone: 'text-amber-700 bg-amber-100', window: bestHour.hour };
+  }
+  return { level: 'Low', tone: 'text-slate-600 bg-slate-100', window: bestHour.hour };
+};
+
 const BrandLogo = ({ className = "h-8" }) => (
   <div className={`flex items-center gap-2 ${className}`}>
     <svg viewBox="0 0 100 100" className="h-full w-auto" fill="none"><path d="M15 42L35 62L25 75L5 45L15 42Z" fill="#E11D48"/><path d="M5 45L25 25L35 35L15 42L5 45Z" fill="#F43F5E"/><path d="M35 62L50 85L65 62L50 72L35 62Z" fill="#1E3A8A"/><path d="M35 62L22 45L35 32L50 50L35 62Z" fill="#2563EB"/><path d="M50 50L85 15L95 25L60 70L50 50Z" fill="#15803D"/><path d="M50 50L60 70L40 70L50 50Z" fill="#22C55E"/><circle cx="35" cy="42" r="10" stroke="#1E40AF" strokeWidth="3" fill="white"/><path d="M30 42L34 46L40 38" stroke="#1E40AF" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/></svg>
@@ -292,6 +307,9 @@ export default function VerifyLocalApp() {
   const merchantUsers = networkUsers.filter((u) => u.role === 'merchant');
   const influencerUsers = networkUsers.filter((u) => u.role === 'influencer');
   const merchantCampaigns = bounties.filter((b) => b.merchantEmail === user?.email);
+  const merchantTrafficSeries = buildTrafficSeries(user?.placeId || user?.email || 'merchant');
+  const merchantTrafficDelta = merchantTrafficSeries.reduce((acc, point) => acc + (point.campaign - point.baseline), 0);
+  const merchantOpportunity = classifyOpportunity(merchantTrafficSeries);
   const activeTrafficMerchant = merchantUsers.find((m) => m.email === selectedTrafficMerchantEmail) || merchantUsers[0] || null;
   const activeTrafficDelta = trafficSeries.reduce((acc, p) => acc + p.campaign - p.baseline, 0);
 
@@ -580,6 +598,20 @@ export default function VerifyLocalApp() {
                 </form>
              </div>
              <div className="col-span-8 space-y-4">
+                <div className="bg-white p-6 rounded-[30px] border shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Merchant traffic signal</p>
+                    <p className="text-2xl font-black text-slate-900 tracking-tight mt-1">Opportunity: {merchantOpportunity.level}</p>
+                    <p className="text-xs text-slate-500 font-semibold mt-1">Best posting window: {merchantOpportunity.window}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Daily campaign lift</p>
+                    <p className="text-3xl font-black text-[#1E3A8A] mt-1">+{merchantTrafficDelta}</p>
+                    <span className="inline-flex mt-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-blue-50 text-blue-700">
+                      Estimated signal
+                    </span>
+                  </div>
+                </div>
                 <h3 className="font-black uppercase text-xs tracking-widest text-slate-400 ml-4">My Campaigns</h3>
                 {merchantCampaigns.length === 0 ? (
                   <div className="bg-white p-10 rounded-[40px] border text-center text-slate-400 text-xs font-bold uppercase tracking-[0.2em]">
@@ -629,7 +661,21 @@ export default function VerifyLocalApp() {
                   <div key={b.id} className="bg-white p-10 rounded-[40px] border flex justify-between items-center hover:shadow-2xl transition-all border-slate-200">
                     <div className="flex gap-10 items-center">
                       <div className="w-20 h-20 bg-[#1E3A8A] rounded-[30px] flex items-center justify-center text-white font-black text-3xl shadow-xl">{b.name?.[0] || '?'}</div>
-                      <div><h4 className="text-2xl font-black text-[#1E3A8A] tracking-tighter">{b.name}</h4><p className="text-slate-400 font-black uppercase text-[10px] tracking-widest flex items-center gap-2 mt-2"><MapPin size={12} className="text-red-500"/> {b.city}</p></div>
+                      <div>
+                        <h4 className="text-2xl font-black text-[#1E3A8A] tracking-tighter">{b.name}</h4>
+                        <p className="text-slate-400 font-black uppercase text-[10px] tracking-widest flex items-center gap-2 mt-2"><MapPin size={12} className="text-red-500"/> {b.city}</p>
+                        <div className="mt-3 flex items-center gap-2">
+                          {(() => {
+                            const signal = classifyOpportunity(buildTrafficSeries(b.merchantEmail || b.name || 'opportunity'));
+                            return (
+                              <>
+                                <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${signal.tone}`}>Traffic potential: {signal.level}</span>
+                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Best window: {signal.window}</span>
+                              </>
+                            );
+                          })()}
+                        </div>
+                      </div>
                     </div>
                     <div className="text-right flex items-center gap-12">
                        <div><p className="text-4xl font-black tracking-tighter text-slate-900">{b.perPost}</p><p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Payout</p></div>
