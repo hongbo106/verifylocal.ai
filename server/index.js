@@ -94,7 +94,7 @@ if (process.env.NODE_ENV === 'production') {
   const __dir = dirname(fileURLToPath(import.meta.url));
   const distPath = join(__dir, '..', 'dist');
   app.use(express.static(distPath));
-  app.get('*', (_req, res) => res.sendFile(join(distPath, 'index.html')));
+  app.use((_req, res) => res.sendFile(join(distPath, 'index.html')));
 }
 
 app.listen(PORT, () => {
