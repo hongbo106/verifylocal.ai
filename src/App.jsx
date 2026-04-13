@@ -163,7 +163,7 @@ const AuthPage = ({ portalMode, roleMode, setRoleMode, authMode, setAuthMode, fo
                 </span>
               </div>
               <BrandLogo className="h-12" />
-              <p className={`mt-4 text-sm leading-relaxed ${isAdminPortal ? 'text-slate-300' : 'text-slate-600'}`}>{isAdminPortal ? 'Use your internal admin credentials to access the operator dashboard.' : 'Sign in to continue, or create a role-specific account to test campaign creation and proof submission.'}</p>
+              <p className={`mt-4 text-sm leading-relaxed ${isAdminPortal ? 'text-slate-300' : 'text-slate-700'}`}>{isAdminPortal ? 'Use your internal admin credentials to access the operator dashboard.' : 'Sign in to access your existing dashboard data, or create an account to start tracking campaigns and proofs.'}</p>
               {!isAdminPortal && <div className="mt-5 grid grid-cols-2 gap-3">
                 <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Campaigns</p>
@@ -177,15 +177,14 @@ const AuthPage = ({ portalMode, roleMode, setRoleMode, authMode, setAuthMode, fo
             </div>
 
             <div className="p-8">
-              {!isAdminPortal && <div className="mb-6 rounded-2xl border border-blue-100 bg-blue-50 px-4 py-4">
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-700">Access your data</p>
-                <p className="mt-2 text-sm text-blue-900 font-semibold leading-relaxed">You must sign in to view your existing data, or create an account to start using VerifyLocal.</p>
-                <div className="mt-4 grid grid-cols-2 gap-2">
-                  <button type="button" onClick={() => setAuthMode('signin')} className={`rounded-xl px-3 py-2 text-[10px] font-black uppercase tracking-widest border transition-all ${authMode === 'signin' ? 'bg-white border-blue-300 text-blue-700 shadow-sm' : 'bg-transparent border-blue-200 text-blue-600/80'}`}>I already have an account</button>
-                  <button type="button" onClick={() => setAuthMode('signup')} className={`rounded-xl px-3 py-2 text-[10px] font-black uppercase tracking-widest border transition-all ${authMode === 'signup' ? 'bg-white border-blue-300 text-blue-700 shadow-sm' : 'bg-transparent border-blue-200 text-blue-600/80'}`}>Create new account</button>
+              {!isAdminPortal && <div className="mb-6 rounded-2xl border border-slate-200 bg-slate-50 p-1.5">
+                <div className="grid grid-cols-2 gap-1.5">
+                  <button type="button" onClick={() => setAuthMode('signin')} className={`rounded-xl px-3 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all ${authMode === 'signin' ? 'bg-white text-blue-700 shadow-sm border border-blue-200' : 'text-slate-500'}`}>Sign in</button>
+                  <button type="button" onClick={() => setAuthMode('signup')} className={`rounded-xl px-3 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all ${authMode === 'signup' ? 'bg-white text-blue-700 shadow-sm border border-blue-200' : 'text-slate-500'}`}>Create account</button>
                 </div>
               </div>}
 
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-3">Choose your role</p>
               <div className="flex bg-slate-100 p-1 rounded-2xl mb-6">
                 {availableRoles.map(r => (
                   <button key={r} onClick={() => setRoleMode(r)} className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${roleMode === r ? 'bg-white shadow-md text-blue-600' : 'text-slate-400'}`}>{r}</button>
@@ -217,8 +216,6 @@ const AuthPage = ({ portalMode, roleMode, setRoleMode, authMode, setAuthMode, fo
                 <button className={`w-full py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl ${isAdminPortal ? 'bg-cyan-400 text-slate-950 shadow-cyan-500/20' : 'bg-[#1E3A8A] text-white shadow-blue-100'}`}>{authMode === 'signin' ? 'Login to Dashboard' : 'Create Account & Continue'}</button>
                 <p className={`text-[11px] font-bold mt-2 ${isAdminPortal ? 'text-slate-400' : 'text-slate-500'}`}>{authMode === 'signin' ? 'Use your existing credentials to access your dashboard data.' : 'Create your account first, then you can access your dashboard data.'}</p>
               </form>
-
-              {!isAdminPortal && <button onClick={() => { setAuthMode(authMode === 'signin' ? 'signup' : 'signin'); }} className="w-full mt-6 text-[10px] text-blue-600 underline font-black uppercase tracking-widest">{authMode === 'signin' ? 'Create Account' : 'Return to Login'}</button>}
             </div>
           </div>
 
