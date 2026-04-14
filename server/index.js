@@ -111,15 +111,25 @@ function parseSerpApiPopularTimes(json) {
   };
 }
 
-async function fetchSerpApiPopularTimes({ placeId, merchantEmail }) {
+function isLikelyGooglePlaceId(value) {
+  return /^ChIJ[\w-]{8,}$/i.test(String(value || ''));
+}
+
+async function fetchSerpApiPopularTimes({ placeId, merchantEmail, merchantName }) {
   const apiKey = process.env.SERPAPI_KEY;
   if (!apiKey) {
     return null;
   }
 
+  const placeIdLooksValid = isLikelyGooglePlaceId(placeId);
+  const queryText = merchantName
+    || (!placeIdLooksValid ? placeId : '')
+    || (String(merchantEmail || '').includes('@') ? String(merchantEmail).split('@')[0] : merchantEmail)
+    || 'restaurant';
+
   const query = new URLSearchParams({
     engine: 'google',
-    q: placeId || merchantEmail || 'restaurant',
+    q: queryText,
     gl: 'us',
     hl: 'en',
     api_key: apiKey,
@@ -158,11 +168,11 @@ async function fetchSerpApiPopularTimes({ placeId, merchantEmail }) {
  */
 
 app.get('/api/popular-times', async (req, res) => {
-  const { placeId, merchantEmail } = req.query;
+  const { placeId, merchantEmail, merchantName } = req.query;
   const seed = toSeed(placeId || merchantEmail || 'default');
 
   try {
-    const live = await fetchSerpApiPopularTimes({ placeId, merchantEmail });
+    const live = await fetchSerpApiPopularTimes({ placeId, merchantEmail, merchantName });
     if (live?.series?.length) {
       return res.json({
         placeId: placeId || null,

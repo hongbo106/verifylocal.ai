@@ -485,7 +485,7 @@ export default function VerifyLocalApp() {
   useEffect(() => {
     if (!activeTrafficMerchant?.email) return;
     const controller = new AbortController();
-    const url = `/api/popular-times?merchantEmail=${encodeURIComponent(activeTrafficMerchant.email)}&placeId=${encodeURIComponent(activeTrafficMerchant.placeId || '')}`;
+    const url = `/api/popular-times?merchantEmail=${encodeURIComponent(activeTrafficMerchant.email)}&merchantName=${encodeURIComponent(activeTrafficMerchant.businessName || activeTrafficMerchant.name || '')}&placeId=${encodeURIComponent(activeTrafficMerchant.placeId || '')}`;
     fetch(url, { signal: controller.signal })
       .then((r) => r.json())
       .then((data) => {
@@ -498,7 +498,12 @@ export default function VerifyLocalApp() {
         setTrafficSource('stub');
       });
     return () => controller.abort();
-  }, [activeTrafficMerchant?.email, activeTrafficMerchant?.placeId]);
+  }, [
+    activeTrafficMerchant?.email,
+    activeTrafficMerchant?.placeId,
+    activeTrafficMerchant?.businessName,
+    activeTrafficMerchant?.name,
+  ]);
 
   if (page === 'login') return <AuthPage portalMode={portalMode} sessionID={sessionID} roleMode={roleMode} setRoleMode={handleRoleModeChange} authMode={authMode} setAuthMode={handleAuthModeChange} formData={formData} setFormData={setFormData} handleAuth={handleAuth} />;
 
