@@ -54,6 +54,94 @@ function buildStubSeries(seed) {
   });
 }
 
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function normalizeHourLabel(rawTime) {
+  if (!rawTime) return null;
+  const clean = String(rawTime)
+    .replace(/\u202f|\u00a0/g, ' ')
+    .replace(/\./g, '')
+    .trim()
+    .toUpperCase();
+  const match = clean.match(/(\d{1,2})\s*([AP])M?/);
+  if (!match) return null;
+  return `${parseInt(match[1], 10)}${match[2]}`;
+}
+
+function currentWeekdayKey() {
+  const keys = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+  return keys[new Date().getDay()];
+}
+
+function parseSerpApiPopularTimes(json) {
+  const graphResults = json?.knowledge_graph?.popular_times?.graph_results;
+  if (!graphResults || typeof graphResults !== 'object') return null;
+
+  const preferredDay = currentWeekdayKey();
+  const dayKey = graphResults[preferredDay]
+    ? preferredDay
+    : graphResults.tuesday
+      ? 'tuesday'
+      : Object.keys(graphResults)[0];
+
+  const dayPoints = Array.isArray(graphResults[dayKey]) ? graphResults[dayKey] : [];
+  const byHour = new Map();
+
+  dayPoints.forEach((point) => {
+    const hour = normalizeHourLabel(point?.time);
+    if (!hour || !HOURS.includes(hour)) return;
+    byHour.set(hour, clamp(Number(point?.busyness_score ?? 0), 0, 100));
+  });
+
+  const liveTime = normalizeHourLabel(json?.knowledge_graph?.popular_times?.live?.time);
+  const liveInfo = String(json?.knowledge_graph?.popular_times?.live?.info || '').toLowerCase();
+  const liveBoost = liveInfo.includes('as busy as it gets') ? 18 : liveInfo.includes('little busy') ? 10 : 6;
+
+  const series = HOURS.map((hour) => {
+    const baseline = byHour.get(hour) ?? 0;
+    const campaign = liveTime === hour ? clamp(baseline + liveBoost, 0, 100) : baseline;
+    return { hour, baseline, campaign };
+  });
+
+  return {
+    weekday: dayKey,
+    series,
+  };
+}
+
+async function fetchSerpApiPopularTimes({ placeId, merchantEmail }) {
+  const apiKey = process.env.SERPAPI_KEY;
+  if (!apiKey) {
+    return null;
+  }
+
+  const query = new URLSearchParams({
+    engine: 'google',
+    q: placeId || merchantEmail || 'restaurant',
+    gl: 'us',
+    hl: 'en',
+    api_key: apiKey,
+  });
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 9000);
+
+  try {
+    const response = await fetch(`https://serpapi.com/search.json?${query.toString()}`, {
+      signal: controller.signal,
+    });
+    if (!response.ok) {
+      throw new Error(`SerpAPI HTTP ${response.status}`);
+    }
+    const payload = await response.json();
+    return parseSerpApiPopularTimes(payload);
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 /**
  * Helper: map a SerpAPI popular-times response to the internal series shape.
  * Uncomment and adapt when connecting Option 1.
@@ -69,15 +157,24 @@ function buildStubSeries(seed) {
  * }
  */
 
-app.get('/api/popular-times', (req, res) => {
+app.get('/api/popular-times', async (req, res) => {
   const { placeId, merchantEmail } = req.query;
-
-  // ── Real integration point ──────────────────────────────────────────────
-  // TODO: When placeId is a real Google Place ID and SERPAPI_KEY is set,
-  // replace this block with an actual API call (see header comment above).
-  // ────────────────────────────────────────────────────────────────────────
-
   const seed = toSeed(placeId || merchantEmail || 'default');
+
+  try {
+    const live = await fetchSerpApiPopularTimes({ placeId, merchantEmail });
+    if (live?.series?.length) {
+      return res.json({
+        placeId: placeId || null,
+        source: 'google_places',
+        weekday: live.weekday,
+        series: live.series,
+      });
+    }
+  } catch (error) {
+    console.error('SerpAPI fallback to stub:', error?.message || error);
+  }
+
   return res.json({
     placeId: placeId || null,
     source: 'stub',
