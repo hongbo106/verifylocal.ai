@@ -427,6 +427,8 @@ export default function VerifyLocalApp() {
   const [selectedTrafficMerchantEmail, setSelectedTrafficMerchantEmail] = useState('');
   const [trafficSeries, setTrafficSeries] = useState([]);
   const [trafficSource, setTrafficSource] = useState('stub');
+  const [trafficWeekday, setTrafficWeekday] = useState('Tuesday');
+  const [trafficFallbackReason, setTrafficFallbackReason] = useState('');
 
   useEffect(() => {
     ensureSeedUsers();
@@ -491,11 +493,15 @@ export default function VerifyLocalApp() {
       .then((data) => {
         setTrafficSeries(data.series);
         setTrafficSource(data.source);
+        setTrafficWeekday(data.weekday || 'Tuesday');
+        setTrafficFallbackReason(data.fallbackReason || '');
       })
       .catch((err) => {
         if (err.name === 'AbortError') return;
         setTrafficSeries(buildTrafficSeries(activeTrafficMerchant.email));
         setTrafficSource('stub');
+        setTrafficWeekday('Tuesday');
+        setTrafficFallbackReason('request_failed');
       });
     return () => controller.abort();
   }, [
@@ -506,6 +512,8 @@ export default function VerifyLocalApp() {
   ]);
 
   if (page === 'login') return <AuthPage portalMode={portalMode} sessionID={sessionID} roleMode={roleMode} setRoleMode={handleRoleModeChange} authMode={authMode} setAuthMode={handleAuthModeChange} formData={formData} setFormData={setFormData} handleAuth={handleAuth} />;
+
+  const isLiveTraffic = trafficSource === 'google_places';
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
@@ -570,7 +578,7 @@ export default function VerifyLocalApp() {
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="bg-white/10 border border-white/20 rounded-2xl px-5 py-3 text-center">
-                      <p className="text-[9px] font-black uppercase tracking-widest text-blue-200">Tuesday Delta</p>
+                      <p className="text-[9px] font-black uppercase tracking-widest text-blue-200">{trafficWeekday} {isLiveTraffic ? 'Index Shift' : 'Delta'}</p>
                       <p className="text-3xl font-black text-white leading-none mt-1">+{activeTrafficDelta}</p>
                       <div className={`mt-2 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest inline-block ${
                         trafficSource === 'google_places'
@@ -579,6 +587,9 @@ export default function VerifyLocalApp() {
                       }`}>
                         {trafficSource === 'google_places' ? '● Live' : '○ Stub'}
                       </div>
+                      {!isLiveTraffic && trafficFallbackReason && (
+                        <p className="mt-2 text-[9px] font-bold text-blue-200/80 normal-case">{trafficFallbackReason.replace(/_/g, ' ')}</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -605,10 +616,10 @@ export default function VerifyLocalApp() {
                   {/* Chart */}
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <p className="text-[11px] text-slate-400 font-bold uppercase tracking-[0.2em]">Hourly Foot Traffic</p>
+                      <p className="text-[11px] text-slate-400 font-bold uppercase tracking-[0.2em]">{isLiveTraffic ? 'Hourly Popularity Index' : 'Hourly Foot Traffic'}</p>
                       <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest">
-                        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-slate-200 inline-block"></span>Baseline</span>
-                        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-blue-600 inline-block"></span>Post-Campaign</span>
+                        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-slate-200 inline-block"></span>{isLiveTraffic ? 'Typical index' : 'Baseline'}</span>
+                        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-blue-600 inline-block"></span>{isLiveTraffic ? 'Current estimate' : 'Post-Campaign'}</span>
                       </div>
                     </div>
                     <div className="flex items-end gap-1.5 h-48 bg-slate-50 rounded-2xl px-4 pt-4 pb-0 border border-slate-100">
@@ -655,15 +666,16 @@ export default function VerifyLocalApp() {
                   <div className="rounded-2xl border border-slate-100 overflow-hidden">
                     <div className="bg-slate-50 px-4 py-3 border-b border-slate-100">
                       <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500">Hourly Breakdown — {activeTrafficMerchant?.businessName || activeTrafficMerchant?.name || 'N/A'}</p>
+                      {isLiveTraffic && <p className="text-[10px] text-slate-500 mt-1">Google Popular Times is index-based, not exact visitor counts.</p>}
                     </div>
                     <div className="overflow-x-auto">
                       <table className="w-full text-[11px]">
                         <thead>
                           <tr className="border-b border-slate-100">
                             <th className="text-left px-4 py-2 font-black uppercase tracking-widest text-slate-400">Hour</th>
-                            <th className="text-right px-4 py-2 font-black uppercase tracking-widest text-slate-400">Baseline</th>
-                            <th className="text-right px-4 py-2 font-black uppercase tracking-widest text-slate-400">Campaign</th>
-                            <th className="text-right px-4 py-2 font-black uppercase tracking-widest text-slate-400">Delta</th>
+                            <th className="text-right px-4 py-2 font-black uppercase tracking-widest text-slate-400">{isLiveTraffic ? 'Typical Index' : 'Baseline'}</th>
+                            <th className="text-right px-4 py-2 font-black uppercase tracking-widest text-slate-400">{isLiveTraffic ? 'Current Estimate' : 'Campaign'}</th>
+                            <th className="text-right px-4 py-2 font-black uppercase tracking-widest text-slate-400">{isLiveTraffic ? 'Index Shift' : 'Delta'}</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -673,7 +685,7 @@ export default function VerifyLocalApp() {
                               <td className="px-4 py-2 text-right text-slate-500 font-semibold">{point.baseline}</td>
                               <td className="px-4 py-2 text-right text-slate-700 font-bold">{point.campaign}</td>
                               <td className="px-4 py-2 text-right">
-                                <span className="bg-blue-50 text-blue-700 font-black px-2 py-0.5 rounded-lg">+{point.campaign - point.baseline}</span>
+                                <span className="bg-blue-50 text-blue-700 font-black px-2 py-0.5 rounded-lg">{(point.campaign - point.baseline) > 0 ? '+' : ''}{point.campaign - point.baseline}</span>
                               </td>
                             </tr>
                           ))}

@@ -127,18 +127,37 @@ async function fetchSerpApiPopularTimes({ placeId, merchantEmail, merchantName }
     || (String(merchantEmail || '').includes('@') ? String(merchantEmail).split('@')[0] : merchantEmail)
     || 'restaurant';
 
-  const query = new URLSearchParams({
-    engine: 'google',
-    q: queryText,
-    gl: 'us',
-    hl: 'en',
-    api_key: apiKey,
-  });
-
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 9000);
 
   try {
+    // First attempt: google_maps by place_id (most reliable when place ID exists)
+    if (placeIdLooksValid) {
+      const mapsQuery = new URLSearchParams({
+        engine: 'google_maps',
+        place_id: String(placeId),
+        api_key: apiKey,
+      });
+      const mapsResponse = await fetch(`https://serpapi.com/search.json?${mapsQuery.toString()}`, {
+        signal: controller.signal,
+      });
+      if (mapsResponse.ok) {
+        const mapsPayload = await mapsResponse.json();
+        const mapsParsed = parseSerpApiPopularTimes(mapsPayload);
+        if (mapsParsed?.series?.length) {
+          return { ...mapsParsed, mode: 'google_maps' };
+        }
+      }
+    }
+
+    // Second attempt: standard google query by merchant/business text
+    const query = new URLSearchParams({
+      engine: 'google',
+      q: queryText,
+      gl: 'us',
+      hl: 'en',
+      api_key: apiKey,
+    });
     const response = await fetch(`https://serpapi.com/search.json?${query.toString()}`, {
       signal: controller.signal,
     });
@@ -146,7 +165,9 @@ async function fetchSerpApiPopularTimes({ placeId, merchantEmail, merchantName }
       throw new Error(`SerpAPI HTTP ${response.status}`);
     }
     const payload = await response.json();
-    return parseSerpApiPopularTimes(payload);
+    const parsed = parseSerpApiPopularTimes(payload);
+    if (!parsed?.series?.length) return null;
+    return { ...parsed, mode: 'google_search' };
   } finally {
     clearTimeout(timeout);
   }
@@ -170,6 +191,7 @@ async function fetchSerpApiPopularTimes({ placeId, merchantEmail, merchantName }
 app.get('/api/popular-times', async (req, res) => {
   const { placeId, merchantEmail, merchantName } = req.query;
   const seed = toSeed(placeId || merchantEmail || 'default');
+  const hasApiKey = Boolean(process.env.SERPAPI_KEY);
 
   try {
     const live = await fetchSerpApiPopularTimes({ placeId, merchantEmail, merchantName });
@@ -178,17 +200,26 @@ app.get('/api/popular-times', async (req, res) => {
         placeId: placeId || null,
         source: 'google_places',
         weekday: live.weekday,
+        mode: live.mode,
         series: live.series,
       });
     }
   } catch (error) {
     console.error('SerpAPI fallback to stub:', error?.message || error);
+    return res.json({
+      placeId: placeId || null,
+      source: 'stub',
+      weekday: 'Tuesday',
+      fallbackReason: `api_error:${error?.message || 'unknown'}`,
+      series: buildStubSeries(seed),
+    });
   }
 
   return res.json({
     placeId: placeId || null,
     source: 'stub',
     weekday: 'Tuesday',
+    fallbackReason: hasApiKey ? 'no_popular_times' : 'missing_api_key',
     series: buildStubSeries(seed),
   });
 });
