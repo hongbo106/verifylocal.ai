@@ -10,8 +10,13 @@ const DB_KEYS = { USERS: 'vl_users', BOUNTIES: 'vl_bounties', PROOFS: 'vl_proofs
 const saveToDB = (key, data) => localStorage.setItem(key, JSON.stringify(data));
 const getFromDB = (key) => JSON.parse(localStorage.getItem(key)) || [];
 const ensureSeedUsers = () => {
-  if (!localStorage.getItem(DB_KEYS.USERS)) {
-    saveToDB(DB_KEYS.USERS, [{ email: 'admin@verifylocal.ai', password: 'admin', role: 'admin', name: 'Tony Wang, PhD' }]);
+  const existingUsers = getFromDB(DB_KEYS.USERS);
+  const hasAdmin = existingUsers.some((u) => u.email === 'admin@verifylocal.ai' && u.role === 'admin');
+  if (!hasAdmin) {
+    saveToDB(DB_KEYS.USERS, [
+      ...existingUsers,
+      { email: 'admin@verifylocal.ai', password: 'admin', role: 'admin', name: 'Tony Wang, PhD' },
+    ]);
   }
 };
 const TRAFFIC_HOURS = ['11A', '12P', '1P', '2P', '3P', '4P', '5P', '6P', '7P', '8P'];
