@@ -430,6 +430,11 @@ export default function VerifyLocalApp() {
   const [trafficWeekday, setTrafficWeekday] = useState('Tuesday');
   const [trafficFallbackReason, setTrafficFallbackReason] = useState('');
   const [trafficRefreshNonce, setTrafficRefreshNonce] = useState(0);
+  const [merchantTrafficSeriesData, setMerchantTrafficSeriesData] = useState([]);
+  const [merchantTrafficSource, setMerchantTrafficSource] = useState('stub');
+  const [merchantTrafficWeekday, setMerchantTrafficWeekday] = useState('Tuesday');
+  const [merchantTrafficFallbackReason, setMerchantTrafficFallbackReason] = useState('');
+  const [merchantTrafficRefreshNonce, setMerchantTrafficRefreshNonce] = useState(0);
 
   useEffect(() => {
     ensureSeedUsers();
@@ -479,7 +484,9 @@ export default function VerifyLocalApp() {
   const merchantUsers = networkUsers.filter((u) => u.role === 'merchant');
   const influencerUsers = networkUsers.filter((u) => u.role === 'influencer');
   const merchantCampaigns = bounties.filter((b) => b.merchantEmail === user?.email);
-  const merchantTrafficSeries = buildTrafficSeries(user?.placeId || user?.email || 'merchant');
+  const merchantTrafficSeries = merchantTrafficSeriesData.length
+    ? merchantTrafficSeriesData
+    : buildTrafficSeries(user?.placeId || user?.email || 'merchant');
   const merchantTrafficDelta = merchantTrafficSeries.reduce((acc, point) => acc + (point.campaign - point.baseline), 0);
   const merchantOpportunity = classifyOpportunity(merchantTrafficSeries);
   const activeTrafficMerchant = merchantUsers.find((m) => m.email === selectedTrafficMerchantEmail) || merchantUsers[0] || null;
@@ -511,6 +518,35 @@ export default function VerifyLocalApp() {
     activeTrafficMerchant?.businessName,
     activeTrafficMerchant?.name,
     trafficRefreshNonce,
+  ]);
+
+  useEffect(() => {
+    if (user?.role !== 'merchant' || !user?.email) return;
+    const controller = new AbortController();
+    const url = `/api/popular-times?merchantEmail=${encodeURIComponent(user.email)}&merchantName=${encodeURIComponent(user.businessName || user.name || '')}&placeId=${encodeURIComponent(user.placeId || '')}`;
+    fetch(url, { signal: controller.signal })
+      .then((r) => r.json())
+      .then((data) => {
+        setMerchantTrafficSeriesData(data.series || buildTrafficSeries(user.email));
+        setMerchantTrafficSource(data.source || 'stub');
+        setMerchantTrafficWeekday(data.weekday || 'Tuesday');
+        setMerchantTrafficFallbackReason(data.fallbackReason || '');
+      })
+      .catch((err) => {
+        if (err.name === 'AbortError') return;
+        setMerchantTrafficSeriesData(buildTrafficSeries(user.email));
+        setMerchantTrafficSource('stub');
+        setMerchantTrafficWeekday('Tuesday');
+        setMerchantTrafficFallbackReason('request_failed');
+      });
+    return () => controller.abort();
+  }, [
+    user?.role,
+    user?.email,
+    user?.placeId,
+    user?.businessName,
+    user?.name,
+    merchantTrafficRefreshNonce,
   ]);
 
   if (page === 'login') return <AuthPage portalMode={portalMode} sessionID={sessionID} roleMode={roleMode} setRoleMode={handleRoleModeChange} authMode={authMode} setAuthMode={handleAuthModeChange} formData={formData} setFormData={setFormData} handleAuth={handleAuth} />;
@@ -798,13 +834,26 @@ export default function VerifyLocalApp() {
                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Merchant traffic signal</p>
                     <p className="text-2xl font-black text-slate-900 tracking-tight mt-1">Opportunity: {merchantOpportunity.level}</p>
                     <p className="text-xs text-slate-500 font-semibold mt-1">Best posting window: {merchantOpportunity.window}</p>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-2">
+                      {merchantTrafficWeekday} · {merchantTrafficSource === 'google_places' ? 'Live index' : 'Stub estimate'}
+                    </p>
+                    {merchantTrafficSource !== 'google_places' && merchantTrafficFallbackReason && (
+                      <p className="text-[10px] text-slate-400 mt-1">{merchantTrafficFallbackReason.replace(/_/g, ' ')}</p>
+                    )}
                   </div>
-                  <div className="text-right">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Daily campaign lift</p>
+                  <div className="text-right flex flex-col items-end gap-2">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{merchantTrafficSource === 'google_places' ? 'Daily index shift' : 'Daily campaign lift'}</p>
                     <p className="text-3xl font-black text-[#1E3A8A] mt-1">+{merchantTrafficDelta}</p>
                     <span className="inline-flex mt-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-blue-50 text-blue-700">
-                      Estimated signal
+                      {merchantTrafficSource === 'google_places' ? 'Live popularity index' : 'Estimated signal'}
                     </span>
+                    <button
+                      type="button"
+                      onClick={() => setMerchantTrafficRefreshNonce((prev) => prev + 1)}
+                      className="px-3 py-1.5 rounded-lg border border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:border-blue-300 hover:text-blue-600 transition-colors"
+                    >
+                      Refresh
+                    </button>
                   </div>
                 </div>
                 <h3 className="font-black uppercase text-xs tracking-widest text-slate-400 ml-4">My Campaigns</h3>
