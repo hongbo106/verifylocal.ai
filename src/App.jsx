@@ -429,6 +429,7 @@ export default function VerifyLocalApp() {
   const [trafficSource, setTrafficSource] = useState('stub');
   const [trafficWeekday, setTrafficWeekday] = useState('Tuesday');
   const [trafficFallbackReason, setTrafficFallbackReason] = useState('');
+  const [trafficRefreshNonce, setTrafficRefreshNonce] = useState(0);
 
   useEffect(() => {
     ensureSeedUsers();
@@ -509,6 +510,7 @@ export default function VerifyLocalApp() {
     activeTrafficMerchant?.placeId,
     activeTrafficMerchant?.businessName,
     activeTrafficMerchant?.name,
+    trafficRefreshNonce,
   ]);
 
   if (page === 'login') return <AuthPage portalMode={portalMode} sessionID={sessionID} roleMode={roleMode} setRoleMode={handleRoleModeChange} authMode={authMode} setAuthMode={handleAuthModeChange} formData={formData} setFormData={setFormData} handleAuth={handleAuth} />;
@@ -591,6 +593,13 @@ export default function VerifyLocalApp() {
                         <p className="mt-2 text-[9px] font-bold text-blue-200/80 normal-case">{trafficFallbackReason.replace(/_/g, ' ')}</p>
                       )}
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => setTrafficRefreshNonce((prev) => prev + 1)}
+                      className="px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/20 transition-colors"
+                    >
+                      Refresh
+                    </button>
                   </div>
                 </div>
 
